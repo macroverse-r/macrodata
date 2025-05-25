@@ -1,0 +1,26 @@
+Package: macrodata
+Title: Access to global economic and social panel data
+Version: 0.1.0
+Authors@R: 
+    person("Benjamin", "Peeters", 
+           email = "benjaminpeeters@protonmail.com",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Provides access to international economic and social panel data
+    from major organizations and academic researchers. Includes functions for
+    loading, processing, and harmonizing data across different sources and
+    frequencies. Part of the macroverse ecosystem.
+License: AGPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.5.0)
+Imports:
+    mvcommon (>= 0.1.0),
+    isomapper (>= 0.1.0),
+    zoo,
+    seasonal
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
