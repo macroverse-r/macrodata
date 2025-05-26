@@ -19,8 +19,11 @@ Imports:
     isomapper (>= 0.1.0),
     zoo,
     seasonal
+Remotes:
+    macroverse-r/mvcommon,
+    macroverse-r/isomapper
 Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
