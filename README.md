@@ -173,8 +173,4 @@ Meta-package loading all components
 
 ## License
 
-This package is available under a dual-licensing model: - **Open
-Source**: AGPL-3.0 for academic and non-commercial use - **Commercial**:
-Alternative licensing available for commercial applications
-
-See LICENSE.md for details.
+This package is licensed under AGPL-3.0.
