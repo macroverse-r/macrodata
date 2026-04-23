@@ -22,7 +22,7 @@ data.frame with aggregated values and time range in Variable names
 Internal function that aggregates time series data using various statistical
 and growth-based methods.
 
-Used by: wp_data
+Used by: md_data
 Uses: calculate_yoy_growth, geometric_mean
 
 Features:

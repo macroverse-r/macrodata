@@ -1,12 +1,12 @@
 
 
 # Function to adjust for seasonal variation
-in_adjust_seasonal <- function(data, window_seasadj) {
+.adjust_seasonal <- function(data, window_seasadj) {
 
   original_data <- data
 
   # Ensure all dates are in Date format
-  data <- in_fast_convert_dates(data, period_type = "start")
+  data <- .fast_convert_dates(data, period_type = "start")
   
   
   # Store original column order
@@ -61,16 +61,16 @@ in_adjust_seasonal <- function(data, window_seasadj) {
 }
 
 
-in_test_seasonal_adjustment <- function(data, iso_codes) {
+.test_seasonal_adjustment <- function(data, iso_codes) {
   # Ensure the 'ISO' column exists in the data
   if (!"ISO" %in% colnames(data)) {
     stop("The data frame must contain an 'ISO' column.")
   }
   
-  data <- in_fast_convert_dates(data, period_type = "start")
+  data <- .fast_convert_dates(data, period_type = "start")
 
   # Apply seasonal adjustment to the entire dataset
-  adjusted_data <- in_adjust_seasonal(data)
+  adjusted_data <- .adjust_seasonal(data)
   
 
   # Loop through each provided ISO code

@@ -1,6 +1,6 @@
 
 # TODO add comments
-in_convert_single_date <- function(date_string, period_type = "middle") {
+.convert_single_date <- function(date_string, period_type = "middle") {
   # Function to convert a single date string to as.Date
   
   # Remove 'X' prefix if present
@@ -51,15 +51,15 @@ in_convert_single_date <- function(date_string, period_type = "middle") {
   return(as.Date(NA))
 }
 
-in_convert_dates <- function(data, period_type = "start") {
+.convert_dates <- function(data, period_type = "start") {
   # Function to convert the 'Date' column in the dataframe
   
-  data$Date <- as.Date(sapply(data$Date, function(x) in_convert_single_date(x, period_type)))
+  data$Date <- as.Date(sapply(data$Date, function(x) .convert_single_date(x, period_type)))
   return(data)
 }
 
 
-in_fast_convert_dates <- function(data, period_type = "middle") {
+.fast_convert_dates <- function(data, period_type = "middle") {
   dates <- as.character(data$Date)  # Ensure all inputs are character strings
   
   # Remove 'X' prefix if present

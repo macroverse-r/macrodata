@@ -24,7 +24,7 @@ None (stops with error if validation fails)
 Internal function that checks validity of all input parameters before
 processing.
 
-Used by: wp_data
+Used by: md_data
 Uses: None
 
 Features:

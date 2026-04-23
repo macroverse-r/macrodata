@@ -15,22 +15,22 @@
 #'       DATA_Q: ~0.3 seconds
 #'       DATA_Y: ~0.9 seconds
 #' @keywords internal
-in_load_frequency_data <- function(frequency, verbose = TRUE, force = FALSE) {
+.load_frequency_data <- function(frequency, verbose = TRUE, force = FALSE) {
     data_name <- paste0("DATA_", frequency)
-    
-    
+
+
     # Return cached data if available and not forcing reload
     if (!force && !is.null(.pkgenv[[data_name]])) {
         return(.pkgenv[[data_name]])
     }
-    
+
     # Try development path first
     dev_path <- file.path("inst", "extdata", paste0(data_name, ".RData"))
-    
+
     # If not found in development path, try installed package path
     if (!file.exists(dev_path)) {
-        pkg_path <- system.file("extdata", paste0(data_name, ".RData"), 
-                              package = "WPD")
+        pkg_path <- system.file("extdata", paste0(data_name, ".RData"),
+                              package = "macrodata")
         if (pkg_path == "") {
             stop("Data file ", data_name, ".RData not found")
         }
@@ -38,11 +38,12 @@ in_load_frequency_data <- function(frequency, verbose = TRUE, force = FALSE) {
     } else {
         data_path <- dev_path
     }
-    
+
 
     freq_name <- if (frequency == "Q") "quarterly" else "yearly"
-    in_print_debug(paste0("Loading ", freq_name," data (first use)"), 
-                   verbose = verbose, debug = FALSE, "info", "LOADING")
+    if (isTRUE(verbose)) {
+        mvcommon::mv_inform(paste0("Loading ", freq_name, " data (first use)"))
+    }
 
     # Load data into temporary environment
     temp_env <- new.env()
@@ -61,7 +62,7 @@ in_load_frequency_data <- function(frequency, verbose = TRUE, force = FALSE) {
 #' @param Symbol Character vector of symbols to locate, or NULL
 #' @return Character vector containing "Q", "Y", both, or NULL
 #' @keywords internal
-in_locate_symbol <- function(Symbol = NULL) {
+.locate_symbol <- function(Symbol = NULL) {
     if (is.null(Symbol)) return(c("Q", "Y"))
     
     # Check each symbol individually
@@ -96,8 +97,8 @@ in_locate_symbol <- function(Symbol = NULL) {
 #' Internal function that retrieves metadata information for a given symbol
 #' from the quarterly or yearly metadata tables.
 #'
-#' Used by: wp_data
-#' Uses: in_locate_symbol
+#' Used by: md_data
+#' Uses: .locate_symbol
 #'
 #' Features:
 #' - Dynamic column selection
@@ -122,17 +123,17 @@ in_locate_symbol <- function(Symbol = NULL) {
 #' @examples
 #' \dontrun{
 #' # Get indicator name
-#' in_from_symbol("GDP_C")
-#' 
+#' .from_symbol("GDP_C")
+#'
 #' # Get frequency information
-#' in_from_symbol("GDP_C", "Frequency")
-#' 
+#' .from_symbol("GDP_C", "Frequency")
+#'
 #' # Get data origin
-#' in_from_symbol("GDP_C", "Origin")
+#' .from_symbol("GDP_C", "Origin")
 #' }
 #'
 #' @keywords internal
-in_from_symbol <- function(symbol, opt = "Indicator") {
+.from_symbol <- function(symbol, opt = "Indicator") {
     # Validate opt parameter
     valid_opts <- c("Indicator", "Frequency", "Origin", "Reference")
     if (!opt %in% valid_opts) {
@@ -140,7 +141,7 @@ in_from_symbol <- function(symbol, opt = "Indicator") {
     }
     
     # Find which database(s) contain the symbol
-    locations <- in_locate_symbol(symbol)
+    locations <- .locate_symbol(symbol)
     
     if (is.null(locations)) {
         return(NA_character_)

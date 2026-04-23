@@ -47,7 +47,7 @@ ISO, Date, Variable, Value, Reference (if reference=TRUE)
 Internal function that processes a single formula for multiple countries, handling
 data loading, frequency adjustments, and formula evaluation.
 
-Used by: wp_data
+Used by: md_data
 Uses: .extract_symbols, .determine_symbol_frequencies, .check_missing_data,
 .adjust_columns_to_frequency, .create_symbol_environment
 

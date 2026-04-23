@@ -6,43 +6,43 @@
 
 
 
-in_iso_gdp_normalization <- function(
-                                 ISO, years, indicator, 
+.iso_gdp_normalization <- function(
+                                 ISO, years, indicator,
                                  constant_sample = TRUE,
                                  verbose = TRUE){
 
     # Step 0: check if indicator is yearly or quarterly
-    frequency <- WPD:::in_locate_symbol(indicator)
+    frequency <- .locate_symbol(indicator)
     gdp <- ifelse(frequency == "Y", "GDP_C_Y", 
                   ifelse(frequency == "Q", "GDP_C", NA))
 
     # Step 1: load row data
-    df_ind <- wp_data(ISO = ISO, years = years,
+    df_ind <- md_data(ISO = ISO, years = years,
                       formula = paste(indicator, "*", gdp),
                       verbose = FALSE)
 
-    df_gdp <- wp_data(ISO = ISO, years = years,
+    df_gdp <- md_data(ISO = ISO, years = years,
                       formula = gdp, verbose = FALSE)
 
     # Step 2: check data availability and adjust sample
     both_avail <- !is.na(df_gdp$Value) & !is.na(df_ind$Value)
     iso2remove <- unique(df_gdp[!both_avail, c("ISO")])
     if (verbose) { 
-        in_format_removed_data(df_gdp[!both_avail, c("ISO", "Date")]) 
+        .format_removed_data(df_gdp[!both_avail, c("ISO", "Date")]) 
     }
     if (constant_sample) {
-        gdp_pre <- wp_data(ISO = ISO, years = years, formula = gdp,
+        gdp_pre <- md_data(ISO = ISO, years = years, formula = gdp,
                                 variable = "Total GDP", aggregate_iso = "Sum", verbose = FALSE)
         ISO <- setdiff(unique(df_gdp$ISO), iso2remove)
-        gdp_post <- wp_data(ISO = ISO, years = years, formula = gdp,
+        gdp_post <- md_data(ISO = ISO, years = years, formula = gdp,
                                 variable = "Total GDP", aggregate_iso = "Sum", verbose = FALSE)
         summary <- cbind(gdp_pre[, c("Date", "Value")], gdp_post$Value, 100*gdp_post$Value/gdp_pre$Value)
         names(summary) <- c("Date", "Pre-filter", "Post-filter", "% remaining")
-        in_print_two_columns(summary)
+        .print_two_columns(summary)
 
     } else {
         # not yet implemented
-        stop("Error in wp_gmw(): option constant_sample = FALSE not yet implemented.")
+        stop("Error in md_gwm(): option constant_sample = FALSE not yet implemented.")
         df_ind <- df_ind[both_avail, ]
         df_gdp <- df_gdp[both_avail, ]
     }
@@ -54,19 +54,37 @@ in_iso_gdp_normalization <- function(
 
 
 
-wp_gwm <- function(ISO, years, indicator, 
+#' GDP-Weighted Mean of an Indicator Across Countries
+#'
+#' Computes a GDP-weighted mean of `indicator` across `ISO`, matching the
+#' frequency of the indicator (quarterly or yearly). Optionally adds a simple
+#' cross-country mean as a second series.
+#'
+#' @param ISO character; ISO3 codes or category codes (see `im_get_category`).
+#' @param years numeric length-2 vector; start and end year.
+#' @param indicator character; a single symbol (see `md_info`).
+#' @param iso_name character; ISO label to attach to the aggregated series (default `"TOT"`).
+#' @param var_name character; Variable label for the weighted mean (default `"GWM"`).
+#' @param add_simple_mean logical; if TRUE append a simple (unweighted) mean row.
+#' @param constant_sample logical; if TRUE restrict to ISOs with both indicator and GDP available.
+#' @param verbose logical; print progress information.
+#'
+#' @return data.frame with ISO, Variable, Date, Value columns (Reference preserved).
+#' @family data functions
+#' @export
+md_gwm <- function(ISO, years, indicator,
                    iso_name = "TOT",
                    var_name = "GWM",
-                   add_simple_mean = TRUE, 
+                   add_simple_mean = TRUE,
                    constant_sample = TRUE,
                    verbose = TRUE){
 
-    gdp_norm <- in_iso_gdp_normalization(ISO, years, indicator, constant_sample, verbose)
+    gdp_norm <- .iso_gdp_normalization(ISO, years, indicator, constant_sample, verbose)
     ISO <- gdp_norm$ISO 
     gdp_measure <- gdp_norm$gdp_measure
 
     # Step 3: Get weighted sum components
-    weighted_ind <- wp_data(ISO = ISO, years = years,
+    weighted_ind <- md_data(ISO = ISO, years = years,
                             formula = c(paste(indicator, "*", gdp_measure), gdp_measure),
                             variable = c("Weighted Sum", "Total GDP"),
                             aggregate_iso = "Sum", verbose = FALSE)
@@ -82,7 +100,7 @@ wp_gwm <- function(ISO, years, indicator,
 
     # Step 5: Add simple average
     if (add_simple_mean) {
-        simple_avg <- wp_data(ISO = ISO, years = years,
+        simple_avg <- md_data(ISO = ISO, years = years,
                               formula = indicator,
                               variable = c("Mean"),
                               aggregate_iso = "Mean", verbose = FALSE)
@@ -97,8 +115,25 @@ wp_gwm <- function(ISO, years, indicator,
 
 
 
-wp_data_by_gdp <- function(
-                          ISO, years, indicator, 
+#' Aggregate an Indicator Relative to Summed GDP
+#'
+#' Sums `indicator` and GDP across `ISO`, then returns both the totals and the
+#' ratio (as a percentage) as three rows labelled with `iso_name`. Frequency is
+#' chosen to match the indicator.
+#'
+#' @param ISO character; ISO3 codes or category codes.
+#' @param years numeric length-2 vector; start and end year.
+#' @param indicator character; a single symbol.
+#' @param iso_name character; ISO label for the aggregated rows (default `"TOT"`).
+#' @param var_name character; variable label for the ratio row (default `"Ratio"`).
+#' @param constant_sample logical; restrict to ISOs with both indicator and GDP available.
+#' @param verbose logical; print progress information.
+#'
+#' @return data.frame with ISO, Variable, Date, Value columns.
+#' @family data functions
+#' @export
+md_data_by_gdp <- function(
+                          ISO, years, indicator,
                           iso_name = "TOT",
                           var_name = "Ratio",
                           constant_sample = TRUE,
@@ -107,7 +142,7 @@ wp_data_by_gdp <- function(
 
 
     # ISO codes for which we have data for GDP and Indicator for every period
-    gdp_norm <- in_iso_gdp_normalization(ISO, years, indicator, constant_sample, verbose)
+    gdp_norm <- .iso_gdp_normalization(ISO, years, indicator, constant_sample, verbose)
     ISO <- gdp_norm$ISO 
     if (verbose) {
         cat("------------------ \n ")
@@ -118,7 +153,7 @@ wp_data_by_gdp <- function(
 
 
     # Step 3: Get weighted sum components
-    data <- wp_data(ISO = ISO, years = years,
+    data <- md_data(ISO = ISO, years = years,
                             formula = c(indicator, gdp_measure),
                             variable = c("Indicator", "GDP"),
                             aggregate_iso = "Sum")
@@ -139,7 +174,7 @@ wp_data_by_gdp <- function(
 }
 
 
-in_numeric_dates <- function(dates, only_year = FALSE) {
+.numeric_dates <- function(dates, only_year = FALSE) {
   # Remove 'X' from the beginning if present
   dates <- gsub("^X", "", dates)
   
@@ -165,13 +200,13 @@ in_numeric_dates <- function(dates, only_year = FALSE) {
 
 
 
-in_format_removed_data <- function(df, max_width = options()$width) {
+.format_removed_data <- function(df, max_width = options()$width) {
     if (nrow(df) == 0) { 
         cat("# All data are available! \n")
         return(NULL) 
     }
     # Remove 'X' from dates and create numeric years
-    df$Year <- in_numeric_dates(df$Date, only_year = TRUE)
+    df$Year <- .numeric_dates(df$Date, only_year = TRUE)
 
     # Get unique ISO codes
     unique_iso <- unique(df$ISO)
@@ -244,7 +279,7 @@ in_format_removed_data <- function(df, max_width = options()$width) {
     cat(paste(formatted_output, collapse="\n"), "\n")
 }
 
-in_print_two_columns <- function(summary) {
+.print_two_columns <- function(summary) {
     # Split the data into two parts
     n <- nrow(summary)
     mid <- ceiling(n/2)
@@ -288,34 +323,3 @@ in_print_two_columns <- function(summary) {
         }
     }
 }
-
-
-
-
-
-# years <- c(1970, 2022)
-# ISO <- c("CTR","SMP","PERI")
-# gwm_cpi <- wp_gwm(ISO=ISO, years=years, indicator = "CPI_INFL_RATE", add_simple_mean=F, var_name = "CPI")
-# gwm_cpi2 <- wp_gwm(ISO=ISO, years=years, indicator = "FP_CPI_TOTL_ZG", add_simple_mean=F, var_name = "CPI2")
-# gwm_defl <- wp_gwm(ISO=ISO, years=years, indicator = "GDP_DEFL_Y", add_simple_mean=F, var_name = "GDP deflator")
-# gwm_defl <- wp_gwm(ISO=ISO, years=years, indicator = "GDP_DEFL_Y", add_simple_mean=F, var_name = "GDP deflator")
-# # gwm_defl_wld <- wp_gwm(ISO=ISO, years=years, indicator = "GDP_DEFL_WLD_Y", add_simple_mean=F, var_name = "World GDP deflator")
-# defl_wld <- wp_data(ISO="USA", years=years, formula = "GDP_DEFL_WLD_Y")
-# defl_wld$ISO <- "TOT"
-#
-# defl_wld_nf <- wp_data(ISO="USA", years=years, formula = "GDP_DEFL_WLD_NF_Y")
-# defl_wld_nf$ISO <- "TOT"
-#
-# defl_wld_dl <- wp_data(ISO="USA", years=years, formula = "GDP_DEFL_WLD_DL_Y")
-# defl_wld_dl$ISO <- "TOT"
-#
-# # GDP_DEFL_WLD_Y
-#
-# data <- rbind(gwm_cpi, gwm_cpi2, gwm_defl, defl_wld, defl_wld_nf, defl_wld_dl)
-# # data$Value <- log(data$Value)
-#
-# wp_plot_series(data)
-
-
-
-

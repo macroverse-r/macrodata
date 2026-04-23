@@ -22,7 +22,7 @@ data.frame of filtered data
 Internal function that loads and filters data based on required symbols
 and date range.
 
-Used by: wp_data
+Used by: md_data
 Uses: .extract_symbols, .load_frequency_data, .filter_data_by_frequency, .merge_yearly_quarterly
 
 Features:
