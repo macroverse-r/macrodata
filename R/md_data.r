@@ -11,7 +11,7 @@
 #'        - Individual countries (e.g., "USA", "CHN")
 #'        - Categories (e.g., "CTR_LDR", "BRICS", "AFRICA")
 #'        - Category exclusions using hyphen (e.g., "CTR_LDR - USA")
-#'        See wp_get_category() for available categories.
+#'        See im_get_category() for available categories.
 #' @param formula character vector; mathematical expressions using Symbol codes:
 #'        - Simple variables (e.g., "GDP_C")
 #'        - Calculations with basic operators (e.g., "100*CU_C/GDP_C")
@@ -154,7 +154,7 @@
 #'
 #' @examples
 #' # Basic usage - GDP ratio for one country
-#' data <- wp_data(
+#' data <- md_data(
 #'   ISO = "USA",
 #'   formula = "100*CU_C/GDP_C",
 #'   variable = "Current Account (% GDP)",
@@ -162,7 +162,7 @@
 #' )
 #'
 #' # Multiple countries and indicators with aggregation
-#' data <- wp_data(
+#' data <- md_data(
 #'   ISO = c("CHN", "JPN", "KOR"),
 #'   formula = c("EXg_C/GDP_C", "IMg_C/GDP_C"),
 #'   variable = c("Exports", "Imports"),
@@ -172,7 +172,7 @@
 #' )
 #'
 #' # Using categories with exclusions
-#' data <- wp_data(
+#' data <- md_data(
 #'   ISO = "CTR_LDR - USA",
 #'   formula = "FA_C/GDP_C",
 #'   years = c(1990, 2023),
@@ -181,7 +181,7 @@
 #' )
 #'
 #' # Mixed frequency handling
-#' data <- wp_data(
+#' data <- md_data(
 #'   ISO = "DEU",
 #'   formula = c("GDP_R_2015_Y", "CU_C"),
 #'   years = c(2015, 2023),
@@ -189,11 +189,11 @@
 #'   interpolation_method = "Linear"
 #' )
 #'
-#' @seealso 
-#' \code{\link{wp_plot_series}} for plotting time series
-#' \code{\link{wp_plot_scatter}} for scatter plots
-#' \code{\link{wp_plot_bar}} for bar plots
-#' \code{\link{wp_get_category}} for available country categories
+#' @seealso
+#' \code{pplot::pp_plot_series()} for plotting time series
+#' \code{pplot::pp_plot_scatter()} for scatter plots
+#' \code{pplot::pp_plot_bar()} for bar plots
+#' \code{\link[isomapper]{im_get_category}} for available country categories
 #'
 #' @note
 #' Variables in formulas refer to Symbol codes in the underlying database.
@@ -390,7 +390,7 @@ md_data <- function(ISO,                           # ISO3 codes or categories
 #' Internal function that processes a single formula for multiple countries, handling
 #' data loading, frequency adjustments, and formula evaluation.
 #'
-#' Used by: wp_data
+#' Used by: md_data
 #' Uses: .extract_symbols, .determine_symbol_frequencies, .check_missing_data,
 #'       .adjust_columns_to_frequency, .create_symbol_environment
 #'
@@ -476,11 +476,11 @@ md_data <- function(ISO,                           # ISO3 codes or categories
             sym <- as.character(missing_combinations$Symbol[i])
             new_row[i, ] <- replace_value  # First fill everything with NA/0s
             new_row[i, "ISO"] <- as.character(missing_combinations$ISO[i])
-            new_row[i, "Indicator"] <- in_from_symbol(sym, "Indicator")
+            new_row[i, "Indicator"] <- .from_symbol(sym, "Indicator")
             new_row[i, "Symbol"] <- sym
-            new_row[i, "Origin"] <- in_from_symbol(sym, "Origin")
-            new_row[i, "Reference"] <- in_from_symbol(sym, "Reference")
-            new_row[i, "Frequency"] <- in_from_symbol(sym, "Frequency")
+            new_row[i, "Origin"] <- .from_symbol(sym, "Origin")
+            new_row[i, "Reference"] <- .from_symbol(sym, "Reference")
+            new_row[i, "Frequency"] <- .from_symbol(sym, "Frequency")
         }
 
         # print(" --- BEFORE ----")
@@ -598,7 +598,7 @@ md_data <- function(ISO,                           # ISO3 codes or categories
 #' Internal function that aggregates panel data across countries using various
 #' statistical methods, with optional quartile calculations.
 #'
-#' Used by: wp_data
+#' Used by: md_data
 #' Uses: None
 #'
 #' Features:
@@ -760,7 +760,7 @@ md_data <- function(ISO,                           # ISO3 codes or categories
 #' Internal function that aggregates time series data using various statistical 
 #' and growth-based methods.
 #'
-#' Used by: wp_data
+#' Used by: md_data
 #' Uses: calculate_yoy_growth, geometric_mean
 #'
 #' Features:
@@ -1295,7 +1295,7 @@ md_data <- function(ISO,                           # ISO3 codes or categories
 #' from yearly data.
 #'
 #' Used by: .match_Y2Q
-#' Uses: in_find_years_q2na_q3not, in_find_years_q3na_q2not
+#' Uses: .find_years_q2na_q3not, .find_years_q3na_q2not
 #'
 #' Features:
 #' - Linear or scaled interpolation
@@ -1333,9 +1333,9 @@ md_data <- function(ISO,                           # ISO3 codes or categories
 
     # missing values for Q2
     # For ends on the left, make Q1 and Q2 values equals to yearly values - gap between Q3 values and yearly values (follow the trend)
-    missingQ2_cols <- paste0("X",in_find_years_q2na_q3not(result),"Q2")
-    missingQ2_cols_Q3 <- paste0("X",in_find_years_q2na_q3not(result),"Q3")
-    missingQ2_cols_Q1 <- paste0("X",in_find_years_q2na_q3not(result),"Q1")
+    missingQ2_cols <- paste0("X",.find_years_q2na_q3not(result),"Q2")
+    missingQ2_cols_Q3 <- paste0("X",.find_years_q2na_q3not(result),"Q3")
+    missingQ2_cols_Q1 <- paste0("X",.find_years_q2na_q3not(result),"Q1")
 
     gap_missingQ2 <- row[missingQ2_cols_Q3] - result[missingQ2_cols_Q3]
     result[missingQ2_cols] <- as.numeric(row[missingQ2_cols] + gap_missingQ2)
@@ -1344,9 +1344,9 @@ md_data <- function(ISO,                           # ISO3 codes or categories
 
     # missing values for Q3
     # For ends on the right, make Q3 and Q4 values equals to yearly values - gap between Q2 values and yearly values (follow the trend)
-    missingQ3_cols <- paste0("X",in_find_years_q3na_q2not(result),"Q3")
-    missingQ3_cols_Q2 <- paste0("X",in_find_years_q3na_q2not(result),"Q2")
-    missingQ3_cols_Q4 <- paste0("X",in_find_years_q3na_q2not(result),"Q4")
+    missingQ3_cols <- paste0("X",.find_years_q3na_q2not(result),"Q3")
+    missingQ3_cols_Q2 <- paste0("X",.find_years_q3na_q2not(result),"Q2")
+    missingQ3_cols_Q4 <- paste0("X",.find_years_q3na_q2not(result),"Q4")
 
     gap_missingQ3 <- row[missingQ3_cols_Q2] - result[missingQ3_cols_Q2]
     result[missingQ3_cols] <- as.numeric(row[missingQ3_cols] + gap_missingQ3)
@@ -1404,7 +1404,7 @@ md_data <- function(ISO,                           # ISO3 codes or categories
 #' @return numeric vector of years matching pattern
 #'
 #' @keywords internal
-in_find_years_q2na_q3not <- function(data) {            # quarterly data matrix
+.find_years_q2na_q3not <- function(data) {            # quarterly data matrix
 
   # Get all column names
   col_names <- names(data)
@@ -1450,7 +1450,7 @@ in_find_years_q2na_q3not <- function(data) {            # quarterly data matrix
 #' @return numeric vector of years matching pattern
 #'
 #' @keywords internal
-in_find_years_q3na_q2not <- function(data) {            # quarterly data matrix
+.find_years_q3na_q2not <- function(data) {            # quarterly data matrix
 
   # Get all column names
   col_names <- names(data)
@@ -1566,7 +1566,7 @@ in_find_years_q3na_q2not <- function(data) {            # quarterly data matrix
 #' Internal function that loads and filters data based on required symbols
 #' and date range.
 #'
-#' Used by: wp_data
+#' Used by: md_data
 #' Uses: .extract_symbols, .load_frequency_data, .filter_data_by_frequency, .merge_yearly_quarterly
 #'
 #' Features:
@@ -1844,7 +1844,7 @@ in_find_years_q3na_q2not <- function(data) {            # quarterly data matrix
 #' Internal function that checks validity of all input parameters before
 #' processing.
 #'
-#' Used by: wp_data
+#' Used by: md_data
 #' Uses: None
 #'
 #' Features:

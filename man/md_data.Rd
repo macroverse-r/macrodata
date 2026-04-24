@@ -30,7 +30,7 @@ md_data(
 - Individual countries (e.g., "USA", "CHN")
 - Categories (e.g., "CTR_LDR", "BRICS", "AFRICA")
 - Category exclusions using hyphen (e.g., "CTR_LDR - USA")
-See wp_get_category() for available categories.}
+See im_get_category() for available categories.}
 
 \item{formula}{character vector; mathematical expressions using Symbol codes:
 - Simple variables (e.g., "GDP_C")
@@ -220,7 +220,7 @@ and their units before performing calculations.
 }
 \examples{
 # Basic usage - GDP ratio for one country
-data <- wp_data(
+data <- md_data(
   ISO = "USA",
   formula = "100*CU_C/GDP_C",
   variable = "Current Account (\% GDP)",
@@ -228,7 +228,7 @@ data <- wp_data(
 )
 
 # Multiple countries and indicators with aggregation
-data <- wp_data(
+data <- md_data(
   ISO = c("CHN", "JPN", "KOR"),
   formula = c("EXg_C/GDP_C", "IMg_C/GDP_C"),
   variable = c("Exports", "Imports"),
@@ -238,7 +238,7 @@ data <- wp_data(
 )
 
 # Using categories with exclusions
-data <- wp_data(
+data <- md_data(
   ISO = "CTR_LDR - USA",
   formula = "FA_C/GDP_C",
   years = c(1990, 2023),
@@ -247,7 +247,7 @@ data <- wp_data(
 )
 
 # Mixed frequency handling
-data <- wp_data(
+data <- md_data(
   ISO = "DEU",
   formula = c("GDP_R_2015_Y", "CU_C"),
   years = c(2015, 2023),
@@ -257,9 +257,13 @@ data <- wp_data(
 
 }
 \seealso{
-\code{\link{wp_plot_series}} for plotting time series
-\code{\link{wp_plot_scatter}} for scatter plots
-\code{\link{wp_plot_bar}} for bar plots
-\code{\link{wp_get_category}} for available country categories
+\code{pplot::pp_plot_series()} for plotting time series
+\code{pplot::pp_plot_scatter()} for scatter plots
+\code{pplot::pp_plot_bar()} for bar plots
+\code{\link[isomapper]{im_get_category}} for available country categories
+
+Other data functions: 
+\code{\link{md_data_by_gdp}()},
+\code{\link{md_gwm}()}
 }
 \concept{data functions}

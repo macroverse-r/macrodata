@@ -1,8 +1,8 @@
 #' Display Information About Available Data Variables
 #'
 #' @description
-#' Provides a comprehensive view of available data variables in the WPD package, organized by data source and frequency.
-#' This function is typically used before wp_data() to discover available variables and their codes.
+#' Provides a comprehensive view of available data variables in the macrodata package, organized by data source and frequency.
+#' This function is typically used before md_data() to discover available variables and their codes.
 #' Variables are grouped by their origin (data source) and can be filtered or searched.
 #'
 #' @param frequency Character, either "Q" (quarterly), "Y" (yearly), or NULL (both). If NULL (default),
@@ -110,48 +110,48 @@
 #'
 #' @examples
 #' # Show quarterly data
-#' wp_info("Q")
+#' md_info("Q")
 #'
 #' # Filter by origin
-#' wp_info(origin = c("BIS", "IMF BOP"))
+#' md_info(origin = c("BIS", "IMF BOP"))
 #'
 #' # Search for GDP-related variables
-#' wp_info(search = "GDP")
+#' md_info(search = "GDP")
 #'
 #' # Multiple search terms with color highlighting
-#' wp_info(search = c("GDP", "growth"))
+#' md_info(search = c("GDP", "growth"))
 #'
 #' # Display Balance of Payments relationships
-#' wp_info(special = "BOP")
+#' md_info(special = "BOP")
 #'
-#' # Common workflow with wp_data()
+#' # Common workflow with md_data()
 #' # 1. Discover available GDP variables
-#' wp_info(search = "GDP")
-#' # 2. Use discovered variable in wp_data
-#' wp_data(ISO = "USA", 
+#' md_info(search = "GDP")
+#' # 2. Use discovered variable in md_data
+#' md_data(ISO = "USA", 
 #'         formula = "GDP_R_2015", 
 #'         years = c(2000, 2023))
 #'
 #'
 #' # Combined origin and search filters
-#' wp_info(origin = "IMF BOP", search = "investment")
+#' md_info(origin = "IMF BOP", search = "investment")
 #' 
 #' # Search for percentage indicators
-#' wp_info(search = "_ZS")
+#' md_info(search = "_ZS")
 #' 
 #' # Search for real/constant price variables
-#' wp_info(search = "_R_")
+#' md_info(search = "_R_")
 #' 
 #' # Multiple search terms finding either pattern
-#' wp_info(search = c("GDP", "investment"))
+#' md_info(search = c("GDP", "investment"))
 #'
 #' # Get data without printing
-#' gdp_vars <- wp_info(search = "GDP", print = FALSE)
+#' gdp_vars <- md_info(search = "GDP", print = FALSE)
 #'
-#' @seealso \code{\link{wp_data}} for using the discovered variables in data retrieval
+#' @seealso \code{\link{md_data}} for using the discovered variables in data retrieval
 #' @export
 
-wp_info <- function(frequency = NULL, origin = NULL, search = NULL, color = TRUE, special = NULL, print = TRUE) {
+md_info <- function(frequency = NULL, origin = NULL, search = NULL, color = TRUE, special = NULL, print = TRUE) {
 
     # Define ANSI color codes
     colors <- list(
@@ -169,9 +169,9 @@ wp_info <- function(frequency = NULL, origin = NULL, search = NULL, color = TRUE
     )
 
 
-    # Special cases are managed in in_info_special
+    # Special cases are managed in .info_special
     if (!is.null(special)) {
-        return(in_info_special(special, frequency, origin, search, color, colors_def = colors, print = print))
+        return(.info_special(special, frequency, origin, search, color, colors_def = colors, print = print))
     }
 
 
@@ -314,11 +314,9 @@ wp_info <- function(frequency = NULL, origin = NULL, search = NULL, color = TRUE
                 sprintf("%d variables", total_count)
             }
             
-            in_print_debug(sprintf("############# %s Data (%s) #############\n", 
-                            ifelse(freq == "Q", "Quarterly", "Yearly"),
-                            count_text),
-                        verbose = TRUE, debug = TRUE, 
-                        type = "empty")
+            mvcommon::mv_inform(sprintf("############# %s Data (%s) #############",
+                                        ifelse(freq == "Q", "Quarterly", "Yearly"),
+                                        count_text))
             
             # Skip if no data after filtering
             if (filtered_count == 0) return()
@@ -331,11 +329,7 @@ wp_info <- function(frequency = NULL, origin = NULL, search = NULL, color = TRUE
                 ref <- paste0(unique(metadata[metadata$Origin == origin,]$Reference), 
                              collapse=", ")
 
-                in_print_debug(sprintf("Data from %s", ref),
-                        verbose = TRUE, 
-                        debug = FALSE,
-                        type = "info",
-                        text_type = origin)
+                mvcommon::mv_inform(sprintf("[%s] Data from %s", origin, ref))
                 
                 # Filter data for current Origin
                 origin_data <- metadata[metadata$Origin == origin, ]
@@ -391,7 +385,7 @@ wp_info <- function(frequency = NULL, origin = NULL, search = NULL, color = TRUE
 
 #' Display Special Data Information
 #' 
-#' Internal function to handle special data display cases in wp_info. Currently supports
+#' Internal function to handle special data display cases in md_info. Currently supports
 #' Balance of Payments (BOP) data display with search and highlighting capabilities.
 #' 
 #' @param special Character string specifying the special data type (currently only "BOP" is supported)
@@ -423,14 +417,14 @@ wp_info <- function(frequency = NULL, origin = NULL, search = NULL, color = TRUE
 #'
 #' @examples
 #' \dontrun{
-#' # These are called internally by wp_info:
-#' in_info_special("BOP", search = "Export")
-#' in_info_special("BOP", search = c("Export", "Import"), color = TRUE)
+#' # These are called internally by md_info:
+#' .info_special("BOP", search = "Export")
+#' .info_special("BOP", search = c("Export", "Import"), color = TRUE)
 #' }
 #' 
-#' @seealso \code{\link{wp_info}}
+#' @seealso \code{\link{md_info}}
 #' @keywords internal
-in_info_special <- function(special, frequency = NULL, origin = NULL, search = NULL, 
+.info_special <- function(special, frequency = NULL, origin = NULL, search = NULL, 
                           color = TRUE, colors_def = NULL, print = TRUE) {
     # Validate special parameter
     if (!special %in% c("BOP")) {
@@ -452,7 +446,7 @@ in_info_special <- function(special, frequency = NULL, origin = NULL, search = N
     }
     
     # Get BOP data
-    data <- in_info_bop()
+    data <- .info_bop()
     
     # Calculate column widths (accounting for separators " | ")
     available_width <- width - 6  # Remove space for 3 separators
@@ -463,7 +457,7 @@ in_info_special <- function(special, frequency = NULL, origin = NULL, search = N
         Original = floor(available_width * 0.35)  # 35%
     )
     
-    # Function to highlight text with colors (adapted from wp_info)
+    # Function to highlight text with colors (adapted from md_info)
     highlight_text <- function(text, search_terms) {
         if (!color || is.null(search_terms) || is.null(colors_def)) return(text)
         
@@ -649,10 +643,10 @@ in_info_special <- function(special, frequency = NULL, origin = NULL, search = N
 #' @details
 #' The function returns a predefined set of BOP variables and their descriptions.
 #' Each row represents one BOP variable with its associated metadata.
-#' This function is used internally by \code{wp_info} when \code{special = "BOP"}.
+#' This function is used internally by \code{md_info} when \code{special = "BOP"}.
 #' 
 #' @keywords internal
-in_info_bop <- function(){
+.info_bop <- function(){
 
     df_bop_details <- data.frame(
       Short = c(

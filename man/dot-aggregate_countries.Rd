@@ -22,7 +22,7 @@ data.frame with same structure as input, aggregated by method
 Internal function that aggregates panel data across countries using various
 statistical methods, with optional quartile calculations.
 
-Used by: wp_data
+Used by: md_data
 Uses: None
 
 Features:

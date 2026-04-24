@@ -2,5 +2,7 @@
 
 export(md_calculate_yoy_growth)
 export(md_data)
+export(md_data_by_gdp)
 export(md_geometric_mean)
-export(wp_info)
+export(md_gwm)
+export(md_info)

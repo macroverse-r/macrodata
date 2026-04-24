@@ -19,7 +19,7 @@ Internal function that performs linear interpolation to fill quarterly values
 from yearly data.
 
 Used by: .match_Y2Q
-Uses: in_find_years_q2na_q3not, in_find_years_q3na_q2not
+Uses: .find_years_q2na_q3not, .find_years_q3na_q2not
 
 Features:
 \itemize{
